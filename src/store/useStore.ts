@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Conversation, McpServer, Message } from '../types';
+import type { Conversation, McpServer, Message } from '../types/index';
 
 interface AppState {
   // Connections

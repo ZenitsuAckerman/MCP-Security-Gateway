@@ -12,7 +12,7 @@ export class RuleEngine {
     {
       id: 'IMP_CMD',
       category: 'imperative_agent_instruction',
-      pattern: /\b(call|send|upload|forward|reveal|execute|run|invoke|use|ignore|disregard|forget|override|return|print|show|expose|treat this as|follow these|do not tell)\b/g
+      pattern: /(?<![\.\w])(call|send|upload|forward|reveal|execute|run|invoke|use|ignore|disregard|forget|override|return|print|show|expose|treat this as|follow these|do not tell)(?![\.\w])/g
     },
     {
       id: 'AUTH_SPOOF',

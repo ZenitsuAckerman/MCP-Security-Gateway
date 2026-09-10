@@ -1,6 +1,6 @@
 import { Server } from 'lucide-react';
 import { useStore } from '../store/useStore';
-import type { McpServer } from '../types';
+import type { McpServer } from '../types/index';
 
 export default function MCPConnectionItem({ server }: { server: McpServer }) {
   const { selectedServerId, setSelectedServerId } = useStore();

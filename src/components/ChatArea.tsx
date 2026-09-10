@@ -1,7 +1,7 @@
 import { useStore } from '../store/useStore';
 import ChatComposer from './ChatComposer';
 import { MoreHorizontal, ShieldCheck } from 'lucide-react';
-import type { ToolExecutionState } from '../types';
+import type { ToolExecutionState } from '../types/index';
 
 export default function ChatArea() {
   const { conversations, activeConversationId } = useStore();

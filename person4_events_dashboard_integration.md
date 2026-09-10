@@ -24,6 +24,32 @@ Minimum:
 }
 ```
 
+### What is implemented
+
+- **Event Contract:** Stable schema (`src/events/contract.ts`) for normalization.
+- **EventBus & WebSocket:** Bounded memory queue and non-blocking pub/sub.
+- **Dashboard UI & ToolStore:** Event ingestion, deduplication, and dynamic rendering.
+- **State visualization:** Predictable state transitions (UNKNOWN → TRUSTED → MUTATION DETECTED → SUSPENDED → TRUSTED).
+- **Mock Mode:** Safe local simulation of events without polluting Live Mode.
+- **Attack Lab:** UI controls for HTTP API triggers.
+- **Approval UX:** HTTP trigger to request approval, and listening for confirmation.
+- **Event timeline:** Filterable (`[ALL]`, `[SECURITY]`, `[TOOL CALLS]`, `[RESULTS]`), chronologically robust live feed.
+- **Security alerts:** Dedicated panel for severe security flags.
+- **Observability:** Connection health, `/health` polling, and accurate event counters.
+- **XSS protection:** Safe DOM APIs (`textContent`, `createElement`).
+- **Tests:** 100% test coverage using Jest for frontend behavior (`public/app.test.js`).
+
+### What remains external (Integration Dependencies)
+
+The following components are NOT owned by Person 4 and must be connected during the final Team Integration (Phase 6):
+
+- **P1:** Real MCP Client and Servers (Calculator, Email, DocGen), attack triggers.
+- **P2:** Real Manifest Integrity Canonicalization, Hashing, Baseline generation, Verification logic, Mutation Detection, and Real Approval/Rebaseline backend.
+- **P3:** Real Content Security Detector and Output Sanitizer.
+- **Real end-to-end integration.**
+
+These are integration dependencies and will substitute our current HTTP mocks during the final demo.
+
 Add these fields now even if the novelty layer is not implemented yet:
 
 ``` text

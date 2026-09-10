@@ -1,8 +1,8 @@
-import test from 'node:test';
-import assert from 'node:assert';
+
+
 import { diffManifests } from './diff.ts';
 
-test('diffManifests detects additions, removals, and changes', () => {
+it('diffManifests detects additions, removals, and changes', () => {
   const baseline = {
     a: 1,
     b: { c: 2 },
@@ -24,15 +24,15 @@ test('diffManifests detects additions, removals, and changes', () => {
     { path: 'd[1]', type: 'removed', previous: 2 }
   ].sort((a, b) => a.path.localeCompare(b.path));
 
-  assert.deepStrictEqual(sortedDiffs, expected);
+  expect(sortedDiffs).toEqual(expected);
 });
 
-test('diffManifests handles empty vs populated', () => {
+it('diffManifests handles empty vs populated', () => {
   const baseline = { a: 1 };
   const current = {};
   
   const diffs = diffManifests(baseline, current);
-  assert.deepStrictEqual(diffs, [
+  expect(diffs).toEqual([
     { path: 'a', type: 'removed', previous: 1 }
   ]);
 });

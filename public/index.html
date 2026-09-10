@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MCP Sentinel Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <header class="cyber-header">
+      <div class="logo">
+        <span class="shield-icon">🛡️</span> SENTINEL SECURITY CONSOLE
+      </div>
+      <div class="status-indicators">
+        <div class="indicator">
+          <span class="label">Connection:</span>
+          <span id="connection-status" class="value disconnected">DISCONNECTED</span>
+        </div>
+        <div class="indicator">
+          <span class="label">Mode:</span>
+          <span id="mode-status" class="value mode-live">LIVE</span>
+        </div>
+        <div class="indicator">
+          <span class="label">API:</span>
+          <span id="api-status" class="value unknown">UNKNOWN</span>
+        </div>
+        <div class="indicator">
+          <span class="label">Events:</span>
+          <span id="event-count" class="value">0</span>
+        </div>
+        <div class="indicator mode-toggle">
+          <label>
+            <input type="checkbox" id="mock-mode-toggle">
+            Mock Mode
+          </label>
+        </div>
+        <div class="indicator">
+          <button id="btn-reset" class="btn">RESET DEMO VIEW</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="dashboard-grid">
+      <!-- Top Row: Tool Status & Security Alerts -->
+      <section class="panel tool-status-panel">
+        <div class="panel-header">
+          <h2>TOOL STATUS</h2>
+        </div>
+        <div class="panel-content">
+          <table class="status-table">
+            <thead>
+              <tr>
+                <th>TOOL</th>
+                <th>STATE</th>
+                <th>LAST VERIFIED</th>
+                <th>LATEST HASH</th>
+              </tr>
+            </thead>
+            <tbody id="tool-status-body">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel alert-panel">
+        <div class="panel-header">
+          <h2>SECURITY ALERT</h2>
+        </div>
+        <div class="panel-content" id="security-alert-container">
+          <div class="empty-state" id="alert-empty-state">No active security alerts.</div>
+          <div id="active-alert-panel" class="hidden">
+            <div class="alert-banner" id="alert-banner-title">ALERT</div>
+            <div class="alert-tool" id="alert-tool-name">server.tool</div>
+            <div class="alert-event" id="alert-event-type">event_type</div>
+            <div class="alert-reason" id="alert-reason"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Middle Row: Manifest Diff -->
+      <section class="panel action-panel" style="grid-column: 1 / -1;">
+        <div class="panel-header">
+          <h2>MANIFEST DIFF</h2>
+        </div>
+        <div class="panel-content" id="action-container">
+          <div class="empty-state" id="action-empty-state">
+            No mutation detected.
+          </div>
+          
+          <div id="diff-panel" class="diff-panel hidden">
+            <div class="diff-header" id="diff-tool-name-header">Server: unknown | Tool: unknown</div>
+            
+            <div class="diff-section">
+              <h3>HASH INFORMATION</h3>
+              <div class="hash-row">OLD: <span id="diff-old-hash">-</span></div>
+              <div class="hash-row">NEW: <span id="diff-new-hash">-</span></div>
+            </div>
+
+            <div class="diff-section">
+              <h3>DEFINITION CHANGES</h3>
+              <div class="diff-content" id="diff-content-container">
+                <!-- Diff lines rendered here -->
+              </div>
+            </div>
+
+            <div class="action-buttons">
+              <button id="approve-btn" class="btn btn-approve">[ APPROVE ]</button>
+            </div>
+            <div id="approval-status" class="approval-status"></div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Bottom Row: Live Feed -->
+      <section class="panel live-feed-panel" style="grid-column: 1 / -1;">
+        <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center;">
+          <h2>LIVE SECURITY EVENT FEED</h2>
+          <div class="feed-filters" id="feed-filters">
+            <button class="filter-btn active" data-filter="all">ALL</button>
+            <button class="filter-btn" data-filter="security">SECURITY</button>
+            <button class="filter-btn" data-filter="calls">TOOL CALLS</button>
+            <button class="filter-btn" data-filter="results">RESULTS</button>
+          </div>
+        </div>
+        <div class="feed-headers">
+          <div style="width: 120px;">TIME</div>
+          <div style="width: 250px;">SERVER / TOOL</div>
+          <div style="flex: 1;">EVENT</div>
+        </div>
+        <div class="panel-content feed-container" id="live-feed-container">
+          <!-- Rendered via JS -->
+        </div>
+      </section>
+
+      <!-- Attack Lab -->
+      <section class="panel attack-panel" style="grid-column: 1 / -1;">
+        <div class="panel-header">
+          <h2>ATTACK LAB</h2>
+        </div>
+        <div class="panel-content" style="display: flex; gap: 1rem; align-items: center;">
+          <button id="btn-hijack" class="btn btn-attack" style="background: rgba(255, 128, 0, 0.2); color: #ff8000; border: 1px solid #ff8000;">[ TRIGGER CALCULATOR HIJACK ]</button>
+          <button id="btn-inject" class="btn btn-attack" style="background: rgba(255, 0, 85, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red);">[ TRIGGER DOCGEN INJECTION ]</button>
+          <div id="attack-status" class="approval-status" style="margin-left: auto;"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="stateMachine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

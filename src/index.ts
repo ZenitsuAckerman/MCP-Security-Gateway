@@ -1,4 +1,5 @@
 export * from './types';
+import { DecisionEngine } from './engine/DecisionEngine';
 export { DecisionEngine, SecurityEventListener } from './engine/DecisionEngine';
 export { ContentSecurityAdapter, MCPToolManifest, MCPToolResult } from './adapter/ContentSecurityAdapter';
 

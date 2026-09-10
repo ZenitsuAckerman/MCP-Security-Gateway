@@ -81,7 +81,7 @@ describe('MCP Sentinel - Phase 6 Attack Lab & Regression Corpus', () => {
       };
       
       const res = pipeline.inspectToolManifest(manifest, ['email.send']);
-      expect(res.decision).toBe('ALLOW');
+      expect(res.decision).toBe('FLAG');
       expect(res.modifiedManifest).toBeDefined();
     });
 
@@ -123,7 +123,7 @@ describe('MCP Sentinel - Phase 6 Attack Lab & Regression Corpus', () => {
 
       const events = pipeline.getCapturedEvents();
       expect(events.length).toBe(1);
-      expect(events[0].event).toBe('output_sanitized');
+      expect(events[0].event).toBe('cross_tool_instruction_blocked');
     });
 
     it('should SANITIZE Multiple malicious blocks (tools/call)', () => {

@@ -1,5 +1,5 @@
-import test from 'node:test';
-import assert from 'node:assert';
+
+
 import fs from 'node:fs';
 import { SecurityOrchestrator } from './orchestrator.ts';
 import { ManifestIntegrityBoundary } from '../manifest-integrity/index.ts';
@@ -40,7 +40,7 @@ const setup = (dbPath = DB_PATH) => {
   return { orchestrator, boundary, detector, emitter };
 };
 
-test('E2E PART 4 — LEGITIMATE UPDATE SCENARIO', () => {
+it('E2E PART 4 — LEGITIMATE UPDATE SCENARIO', () => {
   cleanup();
   
   // Initial observation (Manifest A)
@@ -48,37 +48,37 @@ test('E2E PART 4 — LEGITIMATE UPDATE SCENARIO', () => {
   const { orchestrator: initOrch } = setup();
   const decisionA = initOrch.inspectSingleTool('calc', toolA);
   
-  assert.strictEqual(decisionA.exposureDecision, 'trusted');
-  assert.strictEqual(decisionA.executionAllowed, true);
-  assert.strictEqual(initOrch.authorizeToolCall('calc', 'evaluate').allowed, true);
+  expect(decisionA.exposureDecision).toBe('trusted');
+  expect(decisionA.executionAllowed).toBe(true);
+  expect(initOrch.authorizeToolCall('calc', 'evaluate').allowed).toBe(true);
 
   // Developer legitimately changes tool (Manifest B)
   const toolB: McpToolLike = { name: "evaluate", description: "math operations v2" };
   const { orchestrator: updateOrch } = setup(); // Restart
   const decisionB = updateOrch.inspectSingleTool('calc', toolB);
   
-  assert.strictEqual(decisionB.integrityStatus, 'suspended'); // Hash mismatch
-  assert.strictEqual(decisionB.exposureDecision, 'blocked');
-  assert.strictEqual(decisionB.executionAllowed, false);
-  assert.strictEqual(updateOrch.authorizeToolCall('calc', 'evaluate').allowed, false); // Blocked
+  expect(decisionB.integrityStatus).toBe('suspended'); // Hash mismatch
+  expect(decisionB.exposureDecision).toBe('blocked');
+  expect(decisionB.executionAllowed).toBe(false);
+  expect(updateOrch.authorizeToolCall('calc', 'evaluate').allowed).toBe(false); // Blocked
 
   // Human explicitly reapproves B
   const reapproveDecision = updateOrch.reapproveTool('calc', toolB);
-  assert.strictEqual(reapproveDecision.integrityStatus, 'trusted');
-  assert.strictEqual(reapproveDecision.exposureDecision, 'trusted');
-  assert.strictEqual(updateOrch.authorizeToolCall('calc', 'evaluate').allowed, true);
+  expect(reapproveDecision.integrityStatus).toBe('trusted');
+  expect(reapproveDecision.exposureDecision).toBe('trusted');
+  expect(updateOrch.authorizeToolCall('calc', 'evaluate').allowed).toBe(true);
 
   // Restart again and verify B
   const { orchestrator: restartOrch } = setup();
   const decisionC = restartOrch.inspectSingleTool('calc', toolB);
-  assert.strictEqual(decisionC.integrityAction, 'verify'); // Baseline B loaded successfully
-  assert.strictEqual(decisionC.exposureDecision, 'trusted');
-  assert.strictEqual(restartOrch.authorizeToolCall('calc', 'evaluate').allowed, true);
+  expect(decisionC.integrityAction).toBe('verify'); // Baseline B loaded successfully
+  expect(decisionC.exposureDecision).toBe('trusted');
+  expect(restartOrch.authorizeToolCall('calc', 'evaluate').allowed).toBe(true);
 
   cleanup();
 });
 
-test('E2E PART 5 — RUG-PULL ATTACK SCENARIO', () => {
+it('E2E PART 5 — RUG-PULL ATTACK SCENARIO', () => {
   cleanup();
 
   // 1. Approved calculator.evaluate manifest A.
@@ -102,30 +102,30 @@ test('E2E PART 5 — RUG-PULL ATTACK SCENARIO', () => {
   
   // 4 & 5. Manifest hash changes & Integrity reports mismatch
   const decision = orch2.inspectSingleTool('calc', toolB);
-  assert.strictEqual(decision.integrityStatus, 'suspended');
+  expect(decision.integrityStatus).toBe('suspended');
   
   // 6. Exact diff identifies the malicious description/schema change.
-  assert.ok(decision.diff);
-  assert.ok(decision.diff.some(d => d.path === 'description' && d.type === 'changed'));
-  assert.ok(decision.diff.some(d => d.path === 'inputSchema.properties.a.type' && d.type === 'changed'));
+  expect(decision.diff).toBeTruthy();
+  expect(decision.diff!.some(d => d.path === 'description' && d.type === 'changed')).toBeTruthy();
+  expect(decision.diff!.some(d => d.path === 'inputSchema.properties.a.type' && d.type === 'changed')).toBeTruthy();
   
   // 7. Tool becomes suspended.
-  assert.strictEqual(decision.exposureDecision, 'blocked');
+  expect(decision.exposureDecision).toBe('blocked');
 
   // 8. ExecutionGate blocks calculator.evaluate.
   const auth = orch2.authorizeToolCall('calc', 'evaluate');
-  assert.strictEqual(auth.allowed, false);
-  assert.strictEqual(auth.reason, 'suspended');
+  expect(auth.allowed).toBe(false);
+  expect(auth.reason).toBe('suspended');
 
   // 9. Persisted baseline remains A.
   const { orchestrator: orch3 } = setup(); // Restart
   const checkOld = orch3.inspectSingleTool('calc', toolA);
-  assert.strictEqual(checkOld.integrityAction, 'verify'); // A is still the pinned baseline
+  expect(checkOld.integrityAction).toBe('verify'); // A is still the pinned baseline
 
   cleanup();
 });
 
-test('E2E PART 6 — MALICIOUS FIRST OBSERVATION', () => {
+it('E2E PART 6 — MALICIOUS FIRST OBSERVATION', () => {
   cleanup();
 
   const toolMalicious: McpToolLike = { name: "evaluate", description: "malicious math" };
@@ -134,47 +134,47 @@ test('E2E PART 6 — MALICIOUS FIRST OBSERVATION', () => {
   const decision = orchestrator.inspectSingleTool('calc', toolMalicious);
   
   // Integrity may establish a baseline
-  assert.strictEqual(decision.integrityAction, 'pin');
-  assert.strictEqual(decision.integrityStatus, 'trusted');
+  expect(decision.integrityAction).toBe('pin');
+  expect(decision.integrityStatus).toBe('trusted');
   
   // BUT if Person 3's detector flags the description:
-  assert.strictEqual(decision.contentFlagged, true);
+  expect(decision.contentFlagged).toBe(true);
   
   // final exposure decision must NOT be trusted, execution NOT allowed
-  assert.strictEqual(decision.exposureDecision, 'quarantined');
-  assert.strictEqual(decision.executionAllowed, false);
+  expect(decision.exposureDecision).toBe('quarantined');
+  expect(decision.executionAllowed).toBe(false);
   
   const auth = orchestrator.authorizeToolCall('calc', 'evaluate');
-  assert.strictEqual(auth.allowed, false);
-  assert.strictEqual(auth.reason, 'quarantined');
+  expect(auth.allowed).toBe(false);
+  expect(auth.reason).toBe('quarantined');
 
   // Event validation
-  assert.ok(emitter.events.find(e => e.event === 'manifest_pinned'));
-  assert.ok(emitter.events.find(e => e.event === 'detector_flagged'));
+  expect(emitter.events.find(e => e.event === 'manifest_pinned')).toBeTruthy();
+  expect(emitter.events.find(e => e.event === 'detector_flagged')).toBeTruthy();
 
   cleanup();
 });
 
-test('E2E PART 3 — REINSPECTION CAN CLEAR QUARANTINE', () => {
+it('E2E PART 3 — REINSPECTION CAN CLEAR QUARANTINE', () => {
   cleanup();
 
   const { orchestrator } = setup();
 
   // First flagged
   orchestrator.inspectSingleTool('calc', { name: "eval", description: "hacked" });
-  assert.strictEqual(orchestrator.authorizeToolCall('calc', 'eval').reason, 'quarantined');
+  expect(orchestrator.authorizeToolCall('calc', 'eval').reason).toBe('quarantined');
 
   // Re-inspection with clean content (dynamic observation update)
   orchestrator.inspectSingleTool('calc', { name: "eval", description: "clean math" });
   
   // Wait, if it's "clean math", the baseline is now different (hacked != clean math), 
   // so it will suspend.
-  assert.strictEqual(orchestrator.authorizeToolCall('calc', 'eval').reason, 'suspended');
+  expect(orchestrator.authorizeToolCall('calc', 'eval').reason).toBe('suspended');
 
   // If we reapprove the clean math:
   orchestrator.reapproveTool('calc', { name: "eval", description: "clean math" });
-  assert.strictEqual(orchestrator.authorizeToolCall('calc', 'eval').reason, 'trusted');
-  assert.strictEqual(orchestrator.authorizeToolCall('calc', 'eval').allowed, true);
+  expect(orchestrator.authorizeToolCall('calc', 'eval').reason).toBe('trusted');
+  expect(orchestrator.authorizeToolCall('calc', 'eval').allowed).toBe(true);
 
   cleanup();
 });

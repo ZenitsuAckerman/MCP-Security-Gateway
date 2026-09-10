@@ -137,6 +137,7 @@ export class ContentSecurityAdapter {
         details: { 
           decision: blockInspection.sanitized ? 'SANITIZE' : 'ALLOW', 
           sanitized: blockInspection.sanitized, 
+          content: '',
           severity: blockInspection.sanitized ? 'CRITICAL' : 'LOW', 
           score: 0, 
           reasons: [], 

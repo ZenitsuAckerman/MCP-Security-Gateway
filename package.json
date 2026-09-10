@@ -9,7 +9,7 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "jest",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json --noEmit",
     "security-demo": "tsc && node dist/demo/runner.js"
   },
   "dependencies": {
@@ -17,6 +17,7 @@
     "lucide-react": "^1.44.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "ws": "^8.21.3",
     "zustand": "^5.0.15"
   },
   "devDependencies": {
@@ -24,8 +25,10 @@
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
+    "@types/ws": "^8.18.1",
     "@vitejs/plugin-react": "^6.1.0",
     "jest": "^29.5.0",
+    "jest-environment-jsdom": "^30.5.1",
     "oxlint": "^1.79.0",
     "ts-jest": "^29.1.0",
     "typescript": "~6.0.2",

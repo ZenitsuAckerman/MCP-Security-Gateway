@@ -1,5 +1,5 @@
-import test from 'node:test';
-import assert from 'node:assert';
+
+
 import fs from 'node:fs';
 import { ManifestIntegrityBoundary } from './boundary.ts';
 import type { McpToolLike } from './adapter.ts';
@@ -11,53 +11,53 @@ const cleanup = () => {
   if (fs.existsSync(`${DB_PATH}.tmp`)) fs.unlinkSync(`${DB_PATH}.tmp`);
 };
 
-test('PERSISTENCE — empty/nonexistent persistence file initializes safely', () => {
+it('PERSISTENCE — empty/nonexistent persistence file initializes safely', () => {
   cleanup();
   const boundary = new ManifestIntegrityBoundary(DB_PATH);
   
   const tool: McpToolLike = { name: "eval", description: "math" };
   const result = boundary.observeTool("calc", tool);
   
-  assert.strictEqual(result.action, "pin");
-  assert.strictEqual(result.status, "trusted");
-  assert.ok(fs.existsSync(DB_PATH));
+  expect(result.action).toBe("pin");
+  expect(result.status).toBe("trusted");
+  expect(fs.existsSync(DB_PATH)).toBeTruthy();
   cleanup();
 });
 
-test('PERSISTENCE — save and reload baseline', () => {
+it('PERSISTENCE — save and reload baseline', () => {
   cleanup();
   const boundary = new ManifestIntegrityBoundary(DB_PATH);
   boundary.observeTool("calc", { name: "eval", description: "math" });
 
   const boundary2 = new ManifestIntegrityBoundary(DB_PATH);
-  assert.strictEqual(boundary2.canExecuteTool("calc", "eval").allowed, true);
+  expect(boundary2.canExecuteTool("calc", "eval").allowed).toBe(true);
   cleanup();
 });
 
-test('PERSISTENCE — reload then verify unchanged manifest', () => {
+it('PERSISTENCE — reload then verify unchanged manifest', () => {
   cleanup();
   new ManifestIntegrityBoundary(DB_PATH).observeTool("calc", { name: "eval", description: "math" });
 
   const boundary2 = new ManifestIntegrityBoundary(DB_PATH);
   const result = boundary2.observeTool("calc", { name: "eval", description: "math" });
   
-  assert.strictEqual(result.action, "verify");
+  expect(result.action).toBe("verify");
   cleanup();
 });
 
-test('PERSISTENCE — reload then detect description mutation', () => {
+it('PERSISTENCE — reload then detect description mutation', () => {
   cleanup();
   new ManifestIntegrityBoundary(DB_PATH).observeTool("calc", { name: "eval", description: "math" });
 
   const boundary2 = new ManifestIntegrityBoundary(DB_PATH);
   const result = boundary2.observeTool("calc", { name: "eval", description: "hacked" });
   
-  assert.strictEqual(result.action, "suspend");
-  assert.strictEqual(boundary2.canExecuteTool("calc", "eval").allowed, false);
+  expect(result.action).toBe("suspend");
+  expect(boundary2.canExecuteTool("calc", "eval").allowed).toBe(false);
   cleanup();
 });
 
-test('PERSISTENCE — reload then detect schema mutation', () => {
+it('PERSISTENCE — reload then detect schema mutation', () => {
   cleanup();
   new ManifestIntegrityBoundary(DB_PATH).observeTool("calc", { 
     name: "eval", 
@@ -70,11 +70,11 @@ test('PERSISTENCE — reload then detect schema mutation', () => {
     inputSchema: { type: "string" } 
   });
   
-  assert.strictEqual(result.action, "suspend");
+  expect(result.action).toBe("suspend");
   cleanup();
 });
 
-test('PERSISTENCE — mismatch does not overwrite persisted baseline', () => {
+it('PERSISTENCE — mismatch does not overwrite persisted baseline', () => {
   cleanup();
   new ManifestIntegrityBoundary(DB_PATH).observeTool("calc", { name: "eval", description: "math" });
 
@@ -86,11 +86,11 @@ test('PERSISTENCE — mismatch does not overwrite persisted baseline', () => {
   
   // Should verify the original math tool, because hacked shouldn't overwrite the file
   const result = boundary3.observeTool("calc", { name: "eval", description: "math" });
-  assert.strictEqual(result.action, "verify");
+  expect(result.action).toBe("verify");
   cleanup();
 });
 
-test('PERSISTENCE — reapproval replaces persisted baseline', () => {
+it('PERSISTENCE — reapproval replaces persisted baseline', () => {
   cleanup();
   new ManifestIntegrityBoundary(DB_PATH).observeTool("calc", { name: "eval", description: "math" });
 
@@ -102,14 +102,14 @@ test('PERSISTENCE — reapproval replaces persisted baseline', () => {
   
   // "math" should now be suspended, "upgraded" should verify
   const resultOld = boundary3.observeTool("calc", { name: "eval", description: "math" });
-  assert.strictEqual(resultOld.action, "suspend");
+  expect(resultOld.action).toBe("suspend");
 
   const resultNew = boundary3.observeTool("calc", { name: "eval", description: "upgraded" });
-  assert.strictEqual(resultNew.action, "verify");
+  expect(resultNew.action).toBe("verify");
   cleanup();
 });
 
-test('PERSISTENCE — defensive copy on persistence', () => {
+it('PERSISTENCE — defensive copy on persistence', () => {
   cleanup();
   const boundary = new ManifestIntegrityBoundary(DB_PATH);
   const tool: McpToolLike = { name: "eval", description: "math" };
@@ -122,32 +122,32 @@ test('PERSISTENCE — defensive copy on persistence', () => {
   const boundary2 = new ManifestIntegrityBoundary(DB_PATH);
   const result = boundary2.observeTool("calc", { name: "eval", description: "math" });
   
-  assert.strictEqual(result.action, "verify");
+  expect(result.action).toBe("verify");
   cleanup();
 });
 
-test('PERSISTENCE — malformed persistence data fails safely', () => {
+it('PERSISTENCE — malformed persistence data fails safely', () => {
   cleanup();
   fs.writeFileSync(DB_PATH, '{ bad json ]', 'utf-8');
 
-  assert.throws(() => new ManifestIntegrityBoundary(DB_PATH), /FATAL.*corrupted/);
+  expect(() => new ManifestIntegrityBoundary(DB_PATH)).toThrow(/FATAL.*corrupted/);
   cleanup();
 });
 
-test('PERSISTENCE — server/tool isolation maintained', () => {
+it('PERSISTENCE — server/tool isolation maintained', () => {
   cleanup();
   const boundary = new ManifestIntegrityBoundary(DB_PATH);
   boundary.observeTool("calc", { name: "eval", description: "math" });
   boundary.observeTool("email", { name: "send", description: "mail" });
 
   const boundary2 = new ManifestIntegrityBoundary(DB_PATH);
-  assert.strictEqual(boundary2.canExecuteTool("calc", "eval").allowed, true);
-  assert.strictEqual(boundary2.canExecuteTool("email", "send").allowed, true);
+  expect(boundary2.canExecuteTool("calc", "eval").allowed).toBe(true);
+  expect(boundary2.canExecuteTool("email", "send").allowed).toBe(true);
   
   boundary2.observeTool("calc", { name: "eval", description: "hacked" });
   
   // calc is suspended, email is fine
-  assert.strictEqual(boundary2.canExecuteTool("calc", "eval").allowed, false);
-  assert.strictEqual(boundary2.canExecuteTool("email", "send").allowed, true);
+  expect(boundary2.canExecuteTool("calc", "eval").allowed).toBe(false);
+  expect(boundary2.canExecuteTool("email", "send").allowed).toBe(true);
   cleanup();
 });

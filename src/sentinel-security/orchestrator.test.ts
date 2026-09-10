@@ -1,5 +1,5 @@
-import test from 'node:test';
-import assert from 'node:assert';
+
+
 import { SecurityOrchestrator } from './orchestrator.ts';
 import { ManifestIntegrityBoundary } from '../manifest-integrity/index.ts';
 import type { ContentDetector, ContentDetectorResult, EventEmitter, AuditEvent } from './contracts.ts';
@@ -32,136 +32,136 @@ const setup = () => {
   return { orchestrator, emitter };
 };
 
-test('ORCHESTRATOR A: Safe first observation (trusted + clean → allowed)', () => {
+it('ORCHESTRATOR A: Safe first observation (trusted + clean → allowed)', () => {
   const { orchestrator } = setup();
   const decision = orchestrator.inspectSingleTool('calc', { name: 'eval', description: 'math' });
   
-  assert.strictEqual(decision.integrityAction, 'pin');
-  assert.strictEqual(decision.contentFlagged, false);
-  assert.strictEqual(decision.exposureDecision, 'trusted');
-  assert.strictEqual(decision.executionAllowed, true);
+  expect(decision.integrityAction).toBe('pin');
+  expect(decision.contentFlagged).toBe(false);
+  expect(decision.exposureDecision).toBe('trusted');
+  expect(decision.executionAllowed).toBe(true);
 
   const auth = orchestrator.authorizeToolCall('calc', 'eval');
-  assert.strictEqual(auth.allowed, true);
+  expect(auth.allowed).toBe(true);
 });
 
-test('ORCHESTRATOR B: Safe unchanged observation (trusted + clean → allowed)', () => {
+it('ORCHESTRATOR B: Safe unchanged observation (trusted + clean → allowed)', () => {
   const { orchestrator } = setup();
   orchestrator.inspectSingleTool('calc', { name: 'eval', description: 'math' });
   const decision = orchestrator.inspectSingleTool('calc', { name: 'eval', description: 'math' });
   
-  assert.strictEqual(decision.integrityAction, 'verify');
-  assert.strictEqual(decision.exposureDecision, 'trusted');
-  assert.strictEqual(decision.executionAllowed, true);
+  expect(decision.integrityAction).toBe('verify');
+  expect(decision.exposureDecision).toBe('trusted');
+  expect(decision.executionAllowed).toBe(true);
 
-  assert.strictEqual(orchestrator.authorizeToolCall('calc', 'eval').allowed, true);
+  expect(orchestrator.authorizeToolCall('calc', 'eval').allowed).toBe(true);
 });
 
-test('ORCHESTRATOR C: Manifest mutation (suspended + clean → blocked)', () => {
+it('ORCHESTRATOR C: Manifest mutation (suspended + clean → blocked)', () => {
   const { orchestrator } = setup();
   orchestrator.inspectSingleTool('calc', { name: 'eval', description: 'math' });
   
   const decision = orchestrator.inspectSingleTool('calc', { name: 'eval', description: 'math 2' });
   
-  assert.strictEqual(decision.integrityStatus, 'suspended');
-  assert.strictEqual(decision.contentFlagged, false);
-  assert.strictEqual(decision.exposureDecision, 'blocked'); // Integrity mismatch takes precedence
-  assert.strictEqual(decision.executionAllowed, false);
+  expect(decision.integrityStatus).toBe('suspended');
+  expect(decision.contentFlagged).toBe(false);
+  expect(decision.exposureDecision).toBe('blocked'); // Integrity mismatch takes precedence
+  expect(decision.executionAllowed).toBe(false);
 
   const auth = orchestrator.authorizeToolCall('calc', 'eval');
-  assert.strictEqual(auth.allowed, false);
-  assert.strictEqual(auth.reason, 'suspended');
+  expect(auth.allowed).toBe(false);
+  expect(auth.reason).toBe('suspended');
 });
 
-test('ORCHESTRATOR D: Malicious first-time description (trusted + flagged → quarantined & blocked)', () => {
+it('ORCHESTRATOR D: Malicious first-time description (trusted + flagged → quarantined & blocked)', () => {
   const { orchestrator } = setup();
   // Pin a bad description
   const decision = orchestrator.inspectSingleTool('calc', { name: 'eval', description: 'hacked math' });
   
-  assert.strictEqual(decision.integrityStatus, 'trusted'); // Integrity pinned successfully
-  assert.strictEqual(decision.contentFlagged, true); // But content is bad
-  assert.strictEqual(decision.exposureDecision, 'quarantined');
-  assert.strictEqual(decision.executionAllowed, false);
+  expect(decision.integrityStatus).toBe('trusted'); // Integrity pinned successfully
+  expect(decision.contentFlagged).toBe(true); // But content is bad
+  expect(decision.exposureDecision).toBe('quarantined');
+  expect(decision.executionAllowed).toBe(false);
 
   const auth = orchestrator.authorizeToolCall('calc', 'eval');
-  assert.strictEqual(auth.allowed, false);
-  assert.strictEqual(auth.reason, 'quarantined');
+  expect(auth.allowed).toBe(false);
+  expect(auth.reason).toBe('quarantined');
 });
 
-test('ORCHESTRATOR E: Manifest mutation + malicious description (suspended + flagged → blocked)', () => {
+it('ORCHESTRATOR E: Manifest mutation + malicious description (suspended + flagged → blocked)', () => {
   const { orchestrator } = setup();
   orchestrator.inspectSingleTool('calc', { name: 'eval', description: 'math' });
   
   const decision = orchestrator.inspectSingleTool('calc', { name: 'eval', description: 'hacked math 2' });
   
-  assert.strictEqual(decision.integrityStatus, 'suspended');
-  assert.strictEqual(decision.contentFlagged, true);
-  assert.strictEqual(decision.exposureDecision, 'blocked'); // Mismatch overrides quarantine
-  assert.strictEqual(decision.executionAllowed, false);
+  expect(decision.integrityStatus).toBe('suspended');
+  expect(decision.contentFlagged).toBe(true);
+  expect(decision.exposureDecision).toBe('blocked'); // Mismatch overrides quarantine
+  expect(decision.executionAllowed).toBe(false);
 
   const auth = orchestrator.authorizeToolCall('calc', 'eval');
-  assert.strictEqual(auth.allowed, false);
-  assert.strictEqual(auth.reason, 'suspended');
+  expect(auth.allowed).toBe(false);
+  expect(auth.reason).toBe('suspended');
 });
 
-test('ORCHESTRATOR F: Unknown tool call is blocked', () => {
+it('ORCHESTRATOR F: Unknown tool call is blocked', () => {
   const { orchestrator } = setup();
   const auth = orchestrator.authorizeToolCall('calc', 'unknown_tool');
-  assert.strictEqual(auth.allowed, false);
-  assert.strictEqual(auth.reason, 'unknown');
+  expect(auth.allowed).toBe(false);
+  expect(auth.reason).toBe('unknown');
 });
 
-test('ORCHESTRATOR G, H: Trusted vs Suspended tool calls', () => {
+it('ORCHESTRATOR G, H: Trusted vs Suspended tool calls', () => {
   const { orchestrator } = setup();
   orchestrator.inspectSingleTool('calc', { name: 'eval', description: 'math' });
-  assert.strictEqual(orchestrator.authorizeToolCall('calc', 'eval').allowed, true); // H
+  expect(orchestrator.authorizeToolCall('calc', 'eval').allowed).toBe(true); // H
 
   orchestrator.inspectSingleTool('calc', { name: 'eval', description: 'math 2' });
-  assert.strictEqual(orchestrator.authorizeToolCall('calc', 'eval').allowed, false); // G
+  expect(orchestrator.authorizeToolCall('calc', 'eval').allowed).toBe(false); // G
 });
 
-test('ORCHESTRATOR I: Reapproved tool', () => {
+it('ORCHESTRATOR I: Reapproved tool', () => {
   const { orchestrator } = setup();
   orchestrator.inspectSingleTool('calc', { name: 'eval', description: 'math' });
   orchestrator.inspectSingleTool('calc', { name: 'eval', description: 'math 2' }); // suspends
   
   // Reapprove normal
   const decision = orchestrator.reapproveTool('calc', { name: 'eval', description: 'math 2' });
-  assert.strictEqual(decision.integrityStatus, 'trusted');
-  assert.strictEqual(decision.contentFlagged, false);
-  assert.strictEqual(decision.exposureDecision, 'trusted');
-  assert.strictEqual(orchestrator.authorizeToolCall('calc', 'eval').allowed, true);
+  expect(decision.integrityStatus).toBe('trusted');
+  expect(decision.contentFlagged).toBe(false);
+  expect(decision.exposureDecision).toBe('trusted');
+  expect(orchestrator.authorizeToolCall('calc', 'eval').allowed).toBe(true);
 
   // Reapprove malicious
   const decision2 = orchestrator.reapproveTool('calc', { name: 'eval', description: 'hacked 3' });
-  assert.strictEqual(decision2.integrityStatus, 'trusted');
-  assert.strictEqual(decision2.contentFlagged, true);
-  assert.strictEqual(decision2.exposureDecision, 'quarantined');
-  assert.strictEqual(orchestrator.authorizeToolCall('calc', 'eval').reason, 'quarantined');
+  expect(decision2.integrityStatus).toBe('trusted');
+  expect(decision2.contentFlagged).toBe(true);
+  expect(decision2.exposureDecision).toBe('quarantined');
+  expect(orchestrator.authorizeToolCall('calc', 'eval').reason).toBe('quarantined');
 });
 
-test('ORCHESTRATOR J: Server/tool isolation', () => {
+it('ORCHESTRATOR J: Server/tool isolation', () => {
   const { orchestrator } = setup();
   orchestrator.inspectSingleTool('calc', { name: 'eval', description: 'math' });
   orchestrator.inspectSingleTool('email', { name: 'send', description: 'hacked mail' });
 
-  assert.strictEqual(orchestrator.authorizeToolCall('calc', 'eval').allowed, true);
-  assert.strictEqual(orchestrator.authorizeToolCall('email', 'send').reason, 'quarantined');
+  expect(orchestrator.authorizeToolCall('calc', 'eval').allowed).toBe(true);
+  expect(orchestrator.authorizeToolCall('email', 'send').reason).toBe('quarantined');
 });
 
-test('ORCHESTRATOR K: Event emission correctness', () => {
+it('ORCHESTRATOR K: Event emission correctness', () => {
   const { orchestrator, emitter } = setup();
   
   // 1. Pin + Clean
   orchestrator.inspectSingleTool('calc', { name: 'eval', description: 'math' });
-  assert.ok(emitter.events.find(e => e.event === 'manifest_pinned'));
+  expect(emitter.events.find(e => e.event === 'manifest_pinned')).toBeTruthy();
   
   emitter.clear();
 
   // 2. Mismatch + Clean
   orchestrator.inspectSingleTool('calc', { name: 'eval', description: 'math 2' });
-  assert.ok(emitter.events.find(e => e.event === 'manifest_mismatch'));
-  assert.ok(emitter.events.find(e => e.event === 'tool_suspended'));
+  expect(emitter.events.find(e => e.event === 'manifest_mismatch')).toBeTruthy();
+  expect(emitter.events.find(e => e.event === 'tool_suspended')).toBeTruthy();
 
   emitter.clear();
 
@@ -169,21 +169,21 @@ test('ORCHESTRATOR K: Event emission correctness', () => {
   orchestrator.reapproveTool('calc', { name: 'eval', description: 'math' }); // clears suspension
   emitter.clear();
   orchestrator.inspectSingleTool('calc', { name: 'eval', description: 'hacked' }); // mismatch + flagged
-  assert.ok(emitter.events.find(e => e.event === 'manifest_mismatch'));
-  assert.ok(emitter.events.find(e => e.event === 'detector_flagged'));
+  expect(emitter.events.find(e => e.event === 'manifest_mismatch')).toBeTruthy();
+  expect(emitter.events.find(e => e.event === 'detector_flagged')).toBeTruthy();
 
   emitter.clear();
 
   // 4. Reapprove
   orchestrator.reapproveTool('calc', { name: 'eval', description: 'hacked' });
-  assert.ok(emitter.events.find(e => e.event === 'approved'));
+  expect(emitter.events.find(e => e.event === 'approved')).toBeTruthy();
 
   emitter.clear();
 
   // 5. Tool Call events
   orchestrator.authorizeToolCall('calc', 'eval');
   const callEvent = emitter.events.find(e => e.event === 'tool_call');
-  assert.ok(callEvent);
-  assert.strictEqual((callEvent?.details as any)?.allowed, false);
-  assert.strictEqual((callEvent?.details as any)?.reason, 'quarantined');
+  expect(callEvent).toBeTruthy();
+  expect((callEvent?.details as any)?.allowed).toBe(false);
+  expect((callEvent?.details as any)?.reason).toBe('quarantined');
 });

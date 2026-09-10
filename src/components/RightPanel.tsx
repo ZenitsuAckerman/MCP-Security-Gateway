@@ -1,6 +1,6 @@
 import { X, Server, Settings, RefreshCw, PowerOff, Loader2 } from 'lucide-react';
 import { useStore } from '../store/useStore';
-import type { McpServer } from '../types';
+import type { McpServer } from '../types/index';
 import { connectCalculator, disconnectCalculator, connectEmail, disconnectEmail } from '../services/chat-api';
 import { useState } from 'react';
 
@@ -82,7 +82,7 @@ export default function RightPanel({ server }: { server: McpServer }) {
         </h4>
         
         <div className="flex flex-col" style={{ gap: '12px' }}>
-          {server.status === 'connected' ? server.tools.map((tool, idx) => (
+          {server.status === 'connected' ? server.tools?.map((tool: any, idx: number) => (
             <div key={idx} style={{ padding: '12px', background: 'var(--bg-app)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
               <div className="font-medium text-sm" style={{ marginBottom: '4px' }}>{tool.name}</div>
               <div className="text-xs text-secondary">{tool.description}</div>
